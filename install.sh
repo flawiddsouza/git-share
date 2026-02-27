@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-# git-share universal installer
+# git-share universal installer for Linux and macOS
 # Usage: curl -sSf https://raw.githubusercontent.com/flawiddsouza/git-share/main/install.sh | sh
 
 GITHUB_REPO="flawiddsouza/git-share"
@@ -12,8 +12,7 @@ OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 case "$OS" in
   linux*) OS='linux' ;;
   darwin*) OS='darwin' ;;
-  msys*|cygwin*|mingw*) OS='windows' ;;
-  *) echo "Unsupported OS: $OS"; exit 1 ;;
+  *) echo "Unsupported OS: $OS. This installer supports Linux and macOS only."; exit 1 ;;
 esac
 
 # Detect Architecture
@@ -32,30 +31,45 @@ if [ -z "$VERSION" ]; then
   VERSION="v1.0.0"
 fi
 
-# Construct download URL
-# Assumes naming convention: git-share-linux-amd64, git-share-darwin-arm64, etc.
-FILENAME="${BINARY_NAME}-${OS}-${ARCH}"
-if [ "$OS" = "windows" ]; then
-  FILENAME="${FILENAME}.exe"
-fi
+# Strip 'v' prefix for filename (releases use v1.0.0 in URL but 1.0.0 in filename)
+VERSION_NO_V=$(echo "$VERSION" | sed 's/^v//')
 
+# Construct download URL
+# Naming convention: git-share-1.0.0-linux-amd64.tar.gz (version without 'v')
+FILENAME="${BINARY_NAME}-${VERSION_NO_V}-${OS}-${ARCH}.tar.gz"
+# URL path uses version with 'v', filename uses version without 'v'
 URL="https://github.com/$GITHUB_REPO/releases/download/${VERSION}/${FILENAME}"
 
 echo "Installing ${BINARY_NAME} ${VERSION} for ${OS}/${ARCH}..."
 echo "Downloading from ${URL}..."
 
-# Download to temp file
-TMP_BIN=$(mktemp)
-curl -L -o "$TMP_BIN" "$URL"
-chmod +x "$TMP_BIN"
+# Create temp directory
+TMP_DIR=$(mktemp -d)
+ARCHIVE_PATH="${TMP_DIR}/${FILENAME}"
+
+# Download archive
+curl -L -o "$ARCHIVE_PATH" "$URL"
+
+# Extract archive
+echo "Extracting..."
+tar -xzf "$ARCHIVE_PATH" -C "$TMP_DIR"
+
+# Find the binary
+BINARY_PATH="${TMP_DIR}/${BINARY_NAME}"
+
+# Make executable
+chmod +x "$BINARY_PATH"
 
 # Move to /usr/local/bin
 INSTALL_DIR="/usr/local/bin"
 if [ ! -w "$INSTALL_DIR" ]; then
   echo "Requesting sudo to install to ${INSTALL_DIR}..."
-  sudo mv "$TMP_BIN" "${INSTALL_DIR}/${BINARY_NAME}"
+  sudo mv "$BINARY_PATH" "${INSTALL_DIR}/${BINARY_NAME}"
 else
-  mv "$TMP_BIN" "${INSTALL_DIR}/${BINARY_NAME}"
+  mv "$BINARY_PATH" "${INSTALL_DIR}/${BINARY_NAME}"
 fi
+
+# Cleanup
+rm -rf "$TMP_DIR"
 
 echo "Successfully installed ${BINARY_NAME} to ${INSTALL_DIR}/${BINARY_NAME}"

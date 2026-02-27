@@ -1,0 +1,55 @@
+# .goreleaser.yaml
+# See https://goreleaser.com for documentation.
+
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    binary: git-share
+
+
+
+archives:
+  - formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: >-
+      {{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}
+
+checksum:
+  name_template: "checksums.txt"
+
+scoops:
+  - name: git-share
+    repository:
+      owner: flawiddsouza
+      name: git-share
+    directory: .
+    homepage: "https://github.com/flawiddsouza/git-share"
+    description: "Securely share git patches with E2E encryption."
+    license: MIT
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
