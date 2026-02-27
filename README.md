@@ -64,9 +64,10 @@ git-share receive <code> --commit # apply as a commit (git am style)
 ### Self-hosting the relay
 
 ```bash
-git-share serve                   # default port 3141
-git-share serve --port 8080       # custom port
-git-share serve --max-ttl 2h      # max allowed TTL
+git-share serve                       # default port 3141
+git-share serve --port 8080           # custom port
+git-share serve --max-ttl 2h          # max allowed TTL
+git-share serve --max-size 50MB       # max blob size (default: 10MB)
 
 # Use your own relay
 git-share send --server https://my-relay.example.com
