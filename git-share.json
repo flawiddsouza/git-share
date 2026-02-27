@@ -1,0 +1,22 @@
+{
+    "version": "1.0.0",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/flawiddsouza/git-share/releases/download/v1.0.0/git-share-1.0.0-windows-amd64.zip",
+            "bin": [
+                "git-share.exe"
+            ],
+            "hash": "65b85412ab2b22c91171284b4a7db50d00b1d84a5b973f5e1fe9418113baff7a"
+        },
+        "arm64": {
+            "url": "https://github.com/flawiddsouza/git-share/releases/download/v1.0.0/git-share-1.0.0-windows-arm64.zip",
+            "bin": [
+                "git-share.exe"
+            ],
+            "hash": "a93e2553c77786c721e6680ff67a4419336da6c30e5fe007a8a4b66df2de763b"
+        }
+    },
+    "homepage": "https://github.com/flawiddsouza/git-share",
+    "license": "MIT",
+    "description": "Securely share git patches with E2E encryption."
+}
