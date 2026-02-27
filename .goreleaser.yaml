@@ -18,6 +18,8 @@ builds:
       - amd64
       - arm64
     binary: git-share
+    ldflags:
+      - -s -w -X github.com/flawiddsouza/git-share/cmd.Version={{ .Version }}
 
 
 
@@ -53,3 +55,4 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+      - "^Scoop update for "
