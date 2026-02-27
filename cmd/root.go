@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	defaultServer = "http://localhost:3141"
+	defaultServer = "https://git-share.artelin.dev"
 )
 
 var serverURL string
