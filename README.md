@@ -1,33 +1,26 @@
 # git-share
 
-Securely share git patches with E2E encryption. Like [croc](https://github.com/schollz/croc), but for git diffs.
+Securely share git patches with end-to-end encryption. It's like [croc](https://github.com/schollz/croc), but specifically for git diffs.
 
-- 🔒 **E2E Encrypted** — XChaCha20-Poly1305, key derived from passphrase via HKDF
-- 💥 **One-time use** — patch is destroyed after the first download
-- ⏰ **Auto-expiry** — patches expire after a configurable TTL (default 1h)
-- 🚀 **Single binary** — no runtime dependencies
-- 🔐 **Zero knowledge** — the relay server only sees ciphertext
+- **E2E Encrypted**: XChaCha20-Poly1305, with keys derived via HKDF.
+- **One-time use**: Patches are deleted immediately after the first download.
+- **Auto-expiry**: Default 1h TTL (configurable).
+- **Zero knowledge**: The relay server only sees ciphertext.
+- **Single binary**: Written in Go, no runtime dependencies.
 
 ## Installation
 
-### 🌐 Cross-Platform (Go)
-The easiest way to install `git-share` globally if you have Go installed:
+### Go
 ```bash
 go install github.com/flawiddsouza/git-share@latest
 ```
 
----
-
-### 🪟 Windows (Scoop)
-If you use [Scoop](https://scoop.sh/):
+### Windows (Scoop)
 ```powershell
 scoop install https://raw.githubusercontent.com/flawiddsouza/git-share/main/git-share.json
 ```
 
----
-
-### 🐧 Linux & 🍎 macOS
-Use the universal install script:
+### Linux & macOS
 ```bash
 curl -sSf https://raw.githubusercontent.com/flawiddsouza/git-share/main/install.sh | sh
 ```
@@ -35,17 +28,17 @@ curl -sSf https://raw.githubusercontent.com/flawiddsouza/git-share/main/install.
 ## Quick Start
 
 ```bash
-# Build
+# Build (optional)
 go build -o git-share .
 
-# Start the relay server (in one terminal)
+# Start a local relay
 ./git-share serve
 
-# Send uncommitted changes (in your repo)
+# Send changes from your repo
 ./git-share send
 # Output: git-share receive k7Xm9pQ2wR-alpha-bravo-charlie-delta
 
-# Receive and apply (in another repo)
+# Receive and apply in another repo
 ./git-share receive k7Xm9pQ2wR-alpha-bravo-charlie-delta
 ```
 
@@ -75,28 +68,27 @@ git-share serve                   # default port 3141
 git-share serve --port 8080       # custom port
 git-share serve --max-ttl 2h      # max allowed TTL
 
-# Point clients at your relay (default: http://localhost:3141)
+# Use your own relay
 git-share send --server https://my-relay.example.com
 ```
 
-## How It Works
+## How it works
 
-1. **Sender** collects git changes (`git diff` / `git format-patch`)
-2. Generates a random code: `<codeId>-<passphrase>` (e.g. `k7Xm9pQ2wR-alpha-bravo-charlie-delta`)
-3. Derives an encryption key from the passphrase using HKDF-SHA256
-4. Encrypts the patch with XChaCha20-Poly1305
-5. Uploads the encrypted blob to the relay (keyed by `codeId`)
-6. **Receiver** downloads the blob, derives the same key, decrypts, and applies
+1. **Sender** collects changes via `git diff` or `git format-patch`.
+2. A random code is generated: `<codeId>-<passphrase>`.
+3. An encryption key is derived from the passphrase using HKDF-SHA256.
+4. The patch is encrypted with XChaCha20-Poly1305.
+5. The encrypted blob is uploaded to the relay, keyed by `codeId`.
+6. **Receiver** downloads the blob and decrypts it locally using the passphrase.
 
-The relay server **never sees the passphrase** — only the `codeId` and opaque ciphertext. The blob is deleted immediately after download.
+The relay server never sees the passphrase or the encryption key. Blobs are deleted immediately after the first successful download.
 
 ## Security
 
 | Property | Implementation |
 |----------|---------------|
-| Encryption | XChaCha20-Poly1305 (24-byte nonce) |
-| Key derivation | HKDF-SHA256 with fixed salt |
-| Passphrase | 4 random words from 256-word diceware list |
-| Server trust | Zero-knowledge — server stores only ciphertext |
-| One-time use | Blob deleted after first GET |
-| Expiry | Configurable TTL, default 1 hour |
+| Encryption | XChaCha20-Poly1305 |
+| Key Derivation | HKDF-SHA256 |
+| Passphrase | 4 random words (diceware) |
+| Server Trust | Zero-knowledge (ciphertext only) |
+| Persistence | One-time use + TTL expiry |
