@@ -1,10 +1,14 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -65,7 +69,7 @@ func New(config Config) *Server {
 	return s
 }
 
-// Start starts the relay server and blocks.
+// Start starts the relay server and blocks until an OS signal or error.
 func (s *Server) Start() error {
 	done := make(chan struct{})
 	s.store.StartCleanupLoop(30*time.Second, done)
@@ -75,7 +79,34 @@ func (s *Server) Start() error {
 	log.Printf(" Max blob size: %s", formatBytes(s.config.MaxSize))
 	log.Printf(" Max TTL: %s", s.config.MaxTTL)
 
-	return http.ListenAndServe(addr, s.mux)
+	httpServer := &http.Server{
+		Addr:    addr,
+		Handler: s.mux,
+	}
+
+	// Listen for OS shutdown signals
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	serveErr := make(chan error, 1)
+	go func() {
+		serveErr <- httpServer.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serveErr:
+		close(done) // stop cleanup goroutine
+		if err != nil && err != http.ErrServerClosed {
+			return err
+		}
+		return nil
+	case <-quit:
+		log.Printf("Shutting down server...")
+		close(done) // stop cleanup goroutine
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		return httpServer.Shutdown(ctx)
+	}
 }
 
 func (s *Server) handleSend(w http.ResponseWriter, r *http.Request) {
