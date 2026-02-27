@@ -17,6 +17,7 @@ type mockSendDeps struct {
 	passphrase  string
 	expiry      string
 	capturedRef string
+	stats       string
 }
 
 func (m *mockSendDeps) FindRepoRoot() (string, error) { return m.repoRoot, nil }
@@ -34,6 +35,7 @@ func (m *mockSendDeps) Encrypt(data, key []byte) ([]byte, error)    { return dat
 func (m *mockSendDeps) Send(codeID, data string, ttl int) (*client.SendResponse, error) {
 	return &client.SendResponse{Expiry: m.expiry}, nil
 }
+func (m *mockSendDeps) PatchStats(patch []byte) (string, error) { return m.stats, nil }
 
 func TestRunSendWithDeps(t *testing.T) {
 	tests := []struct {
@@ -51,6 +53,7 @@ func TestRunSendWithDeps(t *testing.T) {
 			args:          []string{},
 			patch:         "diff content",
 			wantStdout:    []string{"git-share receive abc-123"},
+			wantStderr:    []string{"Summary of changes:", "file.txt | 2 +"},
 			notWantStdout: []string{"--commit"},
 			notWantStderr: []string{"OR to receive as a commit instead of a patch:"},
 		},
@@ -60,6 +63,7 @@ func TestRunSendWithDeps(t *testing.T) {
 			staged:        true,
 			patch:         "diff content",
 			wantStdout:    []string{"git-share receive abc-123"},
+			wantStderr:    []string{"Summary of changes:", "file.txt | 2 +"},
 			notWantStdout: []string{"--commit"},
 			notWantStderr: []string{"OR to receive as a commit instead of a patch:"},
 		},
@@ -68,14 +72,14 @@ func TestRunSendWithDeps(t *testing.T) {
 			args:       []string{"HEAD"},
 			patch:      "patch content",
 			wantStdout: []string{"git-share receive abc-123", "git-share receive abc-123 --commit"},
-			wantStderr: []string{"OR to receive as a commit instead of a patch:"},
+			wantStderr: []string{"OR to receive as a commit instead of a patch:", "Summary of changes:", "file.txt | 2 +"},
 		},
 		{
 			name:       "commit range",
 			args:       []string{"main..feature"},
 			patch:      "patch content",
 			wantStdout: []string{"git-share receive abc-123", "git-share receive abc-123 --commit"},
-			wantStderr: []string{"OR to receive as a commit instead of a patch:"},
+			wantStderr: []string{"OR to receive as a commit instead of a patch:", "Summary of changes:", "file.txt | 2 +"},
 		},
 	}
 
@@ -90,6 +94,7 @@ func TestRunSendWithDeps(t *testing.T) {
 				codeID:     "id",
 				passphrase: "pass",
 				expiry:     "2026-02-27T17:00:00Z",
+				stats:      "file.txt | 2 +",
 			}
 
 			err := runSendWithDeps(stdout, stderr, deps, tt.args, tt.staged, "1h")

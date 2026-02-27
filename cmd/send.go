@@ -48,6 +48,7 @@ type sendDeps interface {
 	DeriveKey(passphrase string) ([]byte, error)
 	Encrypt(data, key []byte) ([]byte, error)
 	Send(codeID, data string, ttl int) (*client.SendResponse, error)
+	PatchStats(patch []byte) (string, error)
 }
 
 type realSendDeps struct{}
@@ -71,6 +72,7 @@ func (d realSendDeps) Send(codeID, data string, ttl int) (*client.SendResponse, 
 	c := client.New(serverURL)
 	return c.Send(codeID, data, ttl)
 }
+func (d realSendDeps) PatchStats(patch []byte) (string, error) { return git.PatchStats(patch) }
 
 func RunSend(cmd *cobra.Command, args []string) error {
 	return runSendWithDeps(os.Stdout, os.Stderr, realSendDeps{}, args, SendStaged, SendTTL)
@@ -104,6 +106,12 @@ func runSendWithDeps(stdout, stderr interface {
 		return err
 	}
 	fmt.Fprintf(stderr, "   Found %d bytes of changes\n", len(patch))
+
+	// Show a summary of changes
+	stats, _ := deps.PatchStats(patch)
+	if stats != "" {
+		fmt.Fprintf(stderr, "\nSummary of changes:\n%s\n", stats)
+	}
 
 	// 3. Generate the code (codeID + passphrase)
 	code, codeID, passphrase, err := deps.GenerateCode()
