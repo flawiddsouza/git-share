@@ -1,19 +1,19 @@
 {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/flawiddsouza/git-share/releases/download/v1.0.0/git-share-1.0.0-windows-amd64.zip",
+            "url": "https://github.com/flawiddsouza/git-share/releases/download/v1.1.0/git-share-1.1.0-windows-amd64.zip",
             "bin": [
                 "git-share.exe"
             ],
-            "hash": "65b85412ab2b22c91171284b4a7db50d00b1d84a5b973f5e1fe9418113baff7a"
+            "hash": "9e12301324c4e9132895b72b103b3d556bfdd60c285bb9efd77cdf93ad618990"
         },
         "arm64": {
-            "url": "https://github.com/flawiddsouza/git-share/releases/download/v1.0.0/git-share-1.0.0-windows-arm64.zip",
+            "url": "https://github.com/flawiddsouza/git-share/releases/download/v1.1.0/git-share-1.1.0-windows-arm64.zip",
             "bin": [
                 "git-share.exe"
             ],
-            "hash": "a93e2553c77786c721e6680ff67a4419336da6c30e5fe007a8a4b66df2de763b"
+            "hash": "50fd10405ce2e414fdf4e9a34afb5d31aed751f8e0005f48d0129caa1f51436c"
         }
     },
     "homepage": "https://github.com/flawiddsouza/git-share",
